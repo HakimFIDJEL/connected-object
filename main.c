@@ -95,6 +95,11 @@ void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
         // Traiter
         printf("[dialogueSrv] Message reçu : %s\n", buff);
 
+        if(strcmp(buff, "exit\n") == 0)
+        {
+            break;
+        }
+
         // On vide le buffer
         buff[0] = '\0';
     }
@@ -135,6 +140,11 @@ void dialogueClt(socket_t *sockConn, buffer_t buff, pFct serial)
 
         // On envoie le message
         envoyer(sockConn, buff, NULL);
+
+        if(strcmp(buff, "exit\n") == 0)
+        {
+            break;
+        }
 
         // On vide le buffer
         buff[0] = '\0';
