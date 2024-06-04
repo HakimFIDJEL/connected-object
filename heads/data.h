@@ -1,8 +1,8 @@
 /**
  *	\file		data.h
  *	\brief		Spécification de la couche Data Representation
- *	\author		Samir El Khattabi
- *	\date		3 mars 2023
+ *	\author		Fidjel Hakim
+ *	\date		25 mars 2023
  *	\version	1.0
  */
 #ifndef DATA_H
@@ -11,8 +11,7 @@
 *****************************************************************************************
  *	\noop		I N C L U D E S   S P E C I F I Q U E S
  */
-#include "session.h"
-#include <stdarg.h>
+#include "./session.h"
 /*
 *****************************************************************************************
  *	\noop		D E F I N I T I O N   DES   C O N S T A N T E S
@@ -45,6 +44,10 @@ typedef void (*pFct) (generic, generic);
 *****************************************************************************************
  *	\noop		P R O T O T Y P E S   DES   F O N C T I O N S
  */
+void envoyerMessSTREAM(socket_t *sockEch, buffer_t buffer);
+void envoyerMessDGRAM(socket_t *sockEch, buffer_t buffer, char *ip, int port);
+void recevoirMessSTREAM(socket_t *sockEch, buffer_t buffer);
+void recevoirMessDGRAM(socket_t *sockEch, buffer_t buffer);
 /**
  *	\fn			void envoyer(socket_t *sockEch, generic quoi, pFct serial, ...)
  *	\brief		Envoi d'une requête/réponse sur une socket
@@ -67,17 +70,5 @@ void envoyer(socket_t *sockEch, generic quoi, pFct serial, ...);
  *				paramètre sockEch modifié pour le mode DGRAM
  */
 void recevoir(socket_t *sockEch, generic quoi, pFct deSerial);
-
-
-// Fonctions locales
-void _envoyerMessStream(socket_t *sockEch, buffer_t buff);
-void _envoyerMessDGRAM(socket_t *sockEch, buffer_t buff, char *adrIP, int port);
-
-void _recevoirMessStream(socket_t *sockEch, buffer_t buff);
-void _recevoirMessDGRAM(socket_t *sockEch, buffer_t buff);
-
-void _serialMess(generic quoi, buffer_t buff);
-void _deSerialMess(buffer_t buff, generic quoi);
-
 
 #endif /* DATA_H */

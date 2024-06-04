@@ -56,6 +56,9 @@ void serveur()
         // On crée un thread pour chaque client
         pthread_t server;
         pthread_create(&server, NULL, &server_thread, &sockEch);
+
+        // On ferme la socket de dialogue
+        pthread_join(server, NULL);
     }
 
 }
@@ -69,8 +72,9 @@ void *server_thread(void * arg)
 
     printf("[Server_thread] Nouvelle connexion depuis l'IP %s\n", inet_ntoa(sockEch.addrLoc.sin_addr));
 
-
     dialogueSrv(&sockEch, buff, NULL);
+
+    printf("[Server_thread] Femeture de la socket %d \n", sockEch.fd);
 
     fermerSocket(&sockEch);
     return NULL;
@@ -97,12 +101,13 @@ void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
 
         if(strcmp(buff, "exit\n") == 0)
         {
-            break;
+            return;
         }
 
         // On vide le buffer
         buff[0] = '\0';
     }
+
     return;
 }
 
@@ -111,8 +116,6 @@ void client()
 {
     socket_t sockConn;
     buffer_t buff;
-
-
 
     // On affiche la socket
     sockConn = connecterClt2Srv(ADDR, PORT);
@@ -138,8 +141,15 @@ void dialogueClt(socket_t *sockConn, buffer_t buff, pFct serial)
         printf("Entrez un message : ");
         fgets(buff, MAXSIZE, stdin);
 
+        // on enlève le \n du buff
+        
+
+
+
         // On envoie le message
         envoyer(sockConn, buff, NULL);
+
+        
 
         if(strcmp(buff, "exit\n") == 0)
         {

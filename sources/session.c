@@ -1,121 +1,110 @@
+/**
+ *	\file		session.c
+ *	\brief		Spécification de la couche Session
+ *	\author		Fidjel Hakim
+ *	\date		25 mars 2023
+ *	\version	1.0
+ */
+/*
+*****************************************************************************************
+ *	\noop		I N C L U D E S   S P E C I F I Q U E S
+ */
 #include "../heads/session.h"
+/*
+*****************************************************************************************
+ *	\noop		  F O N C T I O N S
+ */
+void adr2struct (struct sockaddr_in *addr, char *adrIP, short port){
 
-#define MAX_SOCKETS 10
-// Tableau de sockets
-socket_t sockets[MAX_SOCKETS];
-
-
-void initSockets()
-{
-    for (int i = 0; i < MAX_SOCKETS; i++)
-    {
-        sockets[i].fd = -1;
-    }
-    printf("Tableau de sockets initialisé\n");
-}
-
-void addSocket(socket_t sock)
-{
-    for (int i = 0; i < MAX_SOCKETS; i++)
-    {
-        if (sockets[i].fd == -1)
-        {
-            sockets[i] = sock;
-            break;
-        }
-    }
-}
-
-void removeSocket(int index)
-{
-    if (index < MAX_SOCKETS)
-    {
-        sockets[index].fd = -1;
-    }
-}
-
-void displaySockets()
-{
-    for (int i = 0; i < MAX_SOCKETS; i++)
-    {
-        if (sockets[i].fd != -1)
-        {
-            printf("Socket %d : %d\n", i, sockets[i].fd);
-        }
-    }
-}
-
-
-void _adr2struct (struct sockaddr_in *addr, char *adrIP, short port) 
-{
-    addr->sin_family = AF_INET;
-    addr->sin_port = htons(port);
-    addr->sin_addr.s_addr = inet_addr(adrIP);
+	addr->sin_family = PF_INET;
+	addr->sin_port = htons(port);
+	addr->sin_addr.s_addr = inet_addr(adrIP);
     memset(addr->sin_zero, 0, 8);
+
 }
 
-socket_t creerSocket (int mode)
-{
-	socket_t newSocket;
-    CHECK(newSocket.fd = socket(AF_INET, mode, 0), "socket()");
-    newSocket.mode = mode;
+socket_t creerSocket (int mode){
+	socket_t sock;
 
-    return newSocket;
+	// Vérifie si le mode de socket est connu
+	if (mode != SOCK_STREAM && mode != SOCK_DGRAM){
+		fprintf(stderr, "Mode de socket inconnu\n");
+		exit(1);
+	}
+
+	// Création de la socket en fonction du mode
+	sock.mode = mode;
+	CHECK(sock.fd = socket(PF_INET, mode, 0), "Can't create");
+
+	return sock;
+
 }
 
-socket_t creerSocketAdr (int mode, char *adrIP, short port)
-{
-    socket_t newSocket = creerSocket(mode);
-    _adr2struct(&newSocket.addrLoc, adrIP, port);
-    CHECK(bind(newSocket.fd, (struct sockaddr *)&newSocket.addrLoc, sizeof(newSocket.addrLoc)), "bind()");
+socket_t creerSocketAdr (int mode, char *adrIP, short port){
 
-    return newSocket;
+	socket_t sock;
+
+	// Création de la socket
+	sock = creerSocket(mode);
+
+	// Création de l'adressage
+	adr2struct(&sock.addrLoc, adrIP, port);
+
+	// Association de l'adressage à la socket
+	CHECK(bind(sock.fd, (struct sockaddr *)&sock.addrLoc, sizeof(sock.addrLoc)), "Can't bind");
+
+	return sock;
+
 }
 
-socket_t creerSocketEcoute (char *adrIP, short port)
-{
-    socket_t newSocket = creerSocketAdr(SOCK_STREAM, adrIP, port);
-    CHECK(listen(newSocket.fd, 5), "listen()");
+socket_t creerSocketEcoute (char *adrIP, short port){
 
-    return newSocket;
+	socket_t sock;
+
+	//Création de la sock avec adresse
+	sock = creerSocketAdr(SOCK_STREAM,adrIP,port);
+
+	// Mise en écoute de la socket, 5 ms pour éviter le DenIT Service 
+	CHECK(listen(sock.fd, 5), "Can't listen");
+
+	return sock;
 }
 
-socket_t accepterClt (const socket_t sockEcoute)
-{
-    socket_t newSocket;
-    socklen_t len = sizeof(newSocket.addrDst);
-    CHECK(newSocket.fd = accept(sockEcoute.fd, (struct sockaddr *)&newSocket.addrDst, &len), "accept()");
-    newSocket.mode = sockEcoute.mode;
+socket_t accepterClt (const socket_t sockEcoute){
+	socket_t sockDial;
+	socklen_t cltLen;
 
-    return newSocket;
+	cltLen = sizeof(struct sockaddr_in);
+
+	// On accept la demande de connexion
+	CHECK(sockDial.fd=accept(sockEcoute.fd,(struct sockaddr *)&sockEcoute.addrDst,&cltLen),"Can't accept");
+	sockDial.mode = sockEcoute.mode;
+	sockDial.addrDst = sockEcoute.addrDst;
+	sockDial.addrLoc = sockEcoute.addrLoc;
+
+	return sockDial;
 }
 
-socket_t connecterClt2Srv (char *adrIP, short port) 
-{
-    socket_t newSocket = creerSocket(SOCK_STREAM);
-    _adr2struct(&newSocket.addrDst, adrIP, port);
-    CHECK(connect(newSocket.fd, (struct sockaddr *)&newSocket.addrDst, sizeof(newSocket.addrDst)), "connect()");
+socket_t connecterClt2Srv (char *adrIP, short port){
+	socket_t sock;
 
-    return newSocket;
+	// Création de la socket
+	sock = creerSocket(SOCK_STREAM);
+
+	// Création de l'adressage
+	adr2struct(&sock.addrDst, adrIP, port);
+
+	// Connexion au serveur
+	CHECK(connect(sock.fd, (struct sockaddr *)&sock.addrDst, sizeof(sock.addrDst)), "Can't connect");
+
+	// Recupérer l'addresse affectée à la socket
+	socklen_t len = sizeof(sock.addrLoc);
+	CHECK(getsockname(sock.fd, (struct sockaddr *)&sock.addrLoc, &len), "Can't getsockname");
+
+	return sock;
 }
 
-void fermerSocket (socket_t *sock)
-{
-    if (close(sock->fd) == -1) {
-        perror("Erreur lors de la fermeture de la socket");
-    }
-    printf("[fermerSocket] Socket %d fermée\n", sock->fd);
-}
-
-void zombieManager()
-{
-    // Gestion des processus zombies
-    struct sigaction sa;
-    sa.sa_handler = SIG_IGN; // Ignorer le signal SIGCHLD pour éviter les processus zombies
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        perror("Erreur lors de la configuration de SIGCHLD");
-        exit(EXIT_FAILURE);
-    }
+// fermerSocket
+void fermerSocket (socket_t *sock){
+	close(sock->fd);
 }

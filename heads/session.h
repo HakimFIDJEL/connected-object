@@ -1,8 +1,8 @@
 /**
  *	\file		session.h
  *	\brief		Spécification de la couche Session
- *	\author		Hakim FIDJEL
- *	\date		25 mars 2024
+ *	\author		Fidjel Hakim
+ *	\date		25 mars 2023
  *	\version	1.0
  */
 #ifndef SESSION_H
@@ -14,15 +14,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <pthread.h>
-#include <stdbool.h>
-
-
 /*
 *****************************************************************************************
  *	\noop		D E F I N I T I O N   DES   M A C R O S
@@ -64,7 +60,7 @@ typedef struct socket socket_t;
  *	\noop		P R O T O T Y P E S   DES   F O N C T I O N S
  */
 /**
- *	\fn			void _adr2struct (struct sockaddr_in *addr, char *adrIP, short port)
+ *	\fn			void adr2struct (struct sockaddr_in *addr, char *adrIP, short port)
  *	\brief		Transformer une adresse au format humain en structure SocketBSD
  *	\param		addr : structure d'adressage BSD d'une socket INET
  *	\param		adrIP : adresse IP de la socket créée
@@ -72,7 +68,7 @@ typedef struct socket socket_t;
  *	\note		Le domaine dépend du mode choisi (TCP/UDP)
  *	\result		paramètre *adr modifié
  */
-void _adr2struct (struct sockaddr_in *addr, char *adrIP, short port);
+void adr2struct (struct sockaddr_in *addr, char *adrIP, short port);
 /**
  *	\fn			socket_t creerSocket (int mode)
  *	\brief		Création d'une socket de type DGRAM/STREAM
@@ -114,59 +110,13 @@ socket_t accepterClt (const socket_t sockEcoute);
  *	\result		socket connectée au serveur fourni en paramètre
  */
 socket_t connecterClt2Srv (char *adrIP, short port);
-/**
-    *	\fn	        void fermerSocket (socket_t *sock)
-    *	\brief		Fermeture d'une socket
-    *	\param		sock : socket à fermer
-    *   \result		la socket est fermée
-*/
-void fermerSocket (socket_t *sock);
 
 /**
- *	\fn			void initSockets()
- *	\brief		Initialisation du tableau de sockets
- *	\note		Cette fonction permet d'initialiser le tableau des sockets connectés
+ *	\fn			void fermerSocket(socket_t *sock)
+ *	\brief		Fermeture d'une socket
+ *	\param		sock : pointeur sur la socket à fermer
  *	\result		void
  */
-void initSockets();
-
-
-/**
- *	\fn			void addSocket(socket_t sock)
- *	\brief		Ajout d'une socket au tableau
- *	\param		sock : la socket à ajouter
- *	\note		Cette fonction permet d'ajouter une socket au tableau des sockets connectés
- *	\result		void
- */
-void addSocket(socket_t sock);
-
-
-/**
- *	\fn			void removeSocket(int index)
- *	\brief		Suppression d'une socket du tableau
- *	\param		index : l'indice de la socket à supprimer
- *	\note		Cette fonction permet de supprimer une socket du tableau des sockets connectés
- *	\result		void
- */
-void removeSocket(int index);
-
-
-/**
- *	\fn			void displaySockets()
- *	\brief		Affichage des sockets connectés
- *	\note		Cette fonction permet d'afficher les sockets connectés
- *	\result		void
- */
-void displaySockets();
-
-
-/**
- *	\fn			void zombieManager()
- *	\brief		Le gestionnaire de zombies
- *	\note		Cette fonction permet de gérer les processus zombies
- *	\result		void
- */
-void zombieManager();
-
+void fermerSocket(socket_t *sock);
 
 #endif /* SESSION_H */
