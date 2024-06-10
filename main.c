@@ -3,7 +3,8 @@
 #include "./heads/users.h"
 #include <pthread.h>
 
-#define ADDR "127.0.0.1"
+#define ADDR "0.0.0.0"
+// #define ADDR "192.168.238.73"
 #define PORT 5000
 #define MODE SOCK_STREAM
 #define MAXSIZE 1024
@@ -38,7 +39,7 @@ void serveur()
     buffer_t buff;
     pid_t pid;
 
-    // init_users();
+    init_users();
 
 
 
@@ -52,6 +53,10 @@ void serveur()
         // Accepter une connexion
         sockEch = accepterClt(sockEcoute);
         printf("Socket dialogue créée : %d\n", sockEch.fd);
+
+        User user = add_user(sockEch);
+        
+        display_users();
         
         // On crée un thread pour chaque client
         pthread_t server;
@@ -74,7 +79,11 @@ void *server_thread(void * arg)
 
     dialogueSrv(&sockEch, buff, NULL);
 
+    remove_user(get_user_by_socket(sockEch));
+    display_users();
+
     printf("[Server_thread] Femeture de la socket %d \n", sockEch.fd);
+
 
     fermerSocket(&sockEch);
     return NULL;
@@ -83,13 +92,7 @@ void *server_thread(void * arg)
 
 void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
 {
-    // User *users = get_users(); 
-
-    // Recevoir
-    // recevoir(sockEch, buff, NULL);
-    // User user = add_user(*sockEch, 0, buff);
-
-    
+    User *users = get_users(); 
 
     while(1)
     {
@@ -161,7 +164,3 @@ void dialogueClt(socket_t *sockConn, buffer_t buff, pFct serial)
     }
     return;
 }
-
-
-
-

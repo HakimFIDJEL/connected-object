@@ -2,9 +2,7 @@
 
 
 User users[MAX_USERS];
-Message messages[MAX_MESSAGES];
 int USER_ID = 0;
-int MESSAGE_ID = 0;
 
 void init_users()
 {
@@ -12,14 +10,12 @@ void init_users()
     {
         users[i].id = -1;
         users[i].socket.fd = -1;
-        users[i].name[0] = '\0';
-        users[i].currentChannel = -1;
     }
     printf("[init_users] Users initialized\n");
 }
 
 
-User add_user(socket_t socket, int channel, char name[50])
+User add_user(socket_t socket)
 {
     for (int i = 0; i < 10; i++)
     {
@@ -27,10 +23,8 @@ User add_user(socket_t socket, int channel, char name[50])
         {
             users[i].id = USER_ID;
             users[i].socket = socket;
-            strcpy(users[i].name, name);
-            printf("[add_user] %s added\n", name);
-            connect_user_to_channel(users[i], channel);
             USER_ID ++;
+            printf("[add_user] %d added\n", users[i].id);
             return users[i];
         }
     }
@@ -39,13 +33,14 @@ User add_user(socket_t socket, int channel, char name[50])
 
 void remove_user(User user)
 {
+    int id = user.id;
     for (int i = 0; i < 10; i++)
     {
         if (users[i].id == user.id)
         {
             users[i].id = -1;
-            users[i].currentChannel = -1;
-            printf("[remove_user] %s removed\n", user.name);
+            users[i].socket.fd = -1;
+            printf("[remove_user] %d removed\n", id);
         }
     }
 }
@@ -55,28 +50,18 @@ void remove_user(User user)
 void display_users()
 {
     printf("*******************************************\n");
-    printf("[display_users] Name | ID | Current Channel\n");
+    printf("[display_users] ID | Socket\n");
     for (int i = 0; i < 10; i++)
     {
         if (users[i].id != -1)
         {
-            printf("%s | %d | %d\n", users[i].name, users[i].id , users[i].currentChannel );
+            printf(" %d | %d\n", users[i].id , users[i].socket.fd );
         }
     }
     printf("*******************************************\n"); 
 
     return;
 }
-
-void connect_user_to_channel(User user, int channel_id)
-{
-    user.currentChannel = channel_id;
-    printf("[connect_user_to_channel] %s connected to channel %d\n", user.name, channel_id);
-    
-    return;
-}
-
-
 
 
 User get_user_by_socket(socket_t socket)

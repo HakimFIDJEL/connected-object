@@ -23,30 +23,16 @@
  *	\noop		S T R C T U R E S   DE   D O N N E E S
  */
 #define MAX_USERS 10
-#define MAX_MESSAGES 500
 
 
-/**
- *	\typedef	
- *	\brief		Définition du type de données messages
- */
-typedef struct {
-    int id;							/**< id du message			*/
-    char content[1024];					/**< contenu du message		*/
-    int channel_id;						/**< id du canal du message	*/
-    int user_id;						/**< id de l'utilisateur		*/
-    time_t timestamp;					/**< timestamp du message	*/
-} Message;
 
 /**
  *	\typedef	
  *	\brief		Définition du type de données user_t
  */
 typedef struct {
-    int currentChannel;					/**< canal courant de l'utilisateur	*/
-    socket_t socket;					/**< socket de l'utilisateur			*/
-    char name[50];						/**< nom de l'utilisateur			*/
 	int id;							/**< id de l'utilisateur			*/
+    socket_t socket;					/**< socket de l'utilisateur			*/
 } User;
 
 
@@ -74,7 +60,7 @@ void init_users();
  *	\note	    Cette fonction ajoute un utilisateur au tableau
  *	\result	    user_t
  */
-User add_user(socket_t socket, int channel, char name[50]);
+User add_user(socket_t socket);
 
 /**
  *	\fn			void remove_user(users *u, int id)
@@ -89,8 +75,6 @@ void remove_user(User user);
 
 void display_users();
 
-void connect_user_to_channel(User user, int channel_id);
-
 
 User get_user_by_socket(socket_t socket);
 
@@ -98,8 +82,6 @@ User *get_users();
 
 bool user_exists(int id);
 
-// get messages by user
-Message *get_messages(int user_id, int channel_id);
 
 
 
