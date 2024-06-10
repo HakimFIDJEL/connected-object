@@ -32,6 +32,7 @@
  */
 typedef struct {
 	int id;							/**< id de l'utilisateur			*/
+    int figure_id;                  /**< id de la figure courante de l'utilisateur */
     socket_t socket;					/**< socket de l'utilisateur			*/
 } User;
 
@@ -81,6 +82,8 @@ User get_user_by_socket(socket_t socket);
 User *get_users();
 
 bool user_exists(int id);
+
+User add_figure_to_user(int id);
 
 
 

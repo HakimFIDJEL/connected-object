@@ -40,6 +40,8 @@ typedef void * generic;
  *	\brief		pointer sur fonction générique à 2 parametres génériques
  */
 typedef void (*pFct) (generic, generic);
+
+
 /*
 *****************************************************************************************
  *	\noop		P R O T O T Y P E S   DES   F O N C T I O N S
