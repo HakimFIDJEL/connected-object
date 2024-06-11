@@ -1,15 +1,19 @@
 #include "./heads/data.h"
 #include "./heads/session.h"
-#include "./heads/users.h"
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdbool.h>
 
-#define ADDR "0.0.0.0"
+#define ADDR "192.168.1.92"
 // #define ADDR "192.168.238.73"
 #define PORT 5000
 #define MODE SOCK_STREAM
 #define MAXSIZE 1024
 
-int nbrUser = 0;
 bool gameStarted = false;
 bool gameEnded = false;
 
