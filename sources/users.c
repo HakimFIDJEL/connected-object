@@ -9,7 +9,9 @@ void init_users()
     for (int i = 0; i < 10; i++)
     {
         users[i].id = -1;
+        users[i].figure_id = -1;
         users[i].socket.fd = -1;
+
     }
     printf("[init_users] Users initialized\n");
 }
@@ -22,9 +24,24 @@ User add_user(socket_t socket)
         if (users[i].id == -1)
         {
             users[i].id = USER_ID;
+            users[i].figure_id = 0;
             users[i].socket = socket;
             USER_ID ++;
             printf("[add_user] %d added\n", users[i].id);
+            return users[i];
+        }
+    }
+    return users[0];
+}
+
+User add_figure_to_user(int id)
+{
+    for (int i = 0; i < 10; i++)
+    {
+        if (users[i].id == id)
+        {
+            users[i].figure_id = users[i].figure_id + 1;
+            printf("[add_figure_to_user] L'utilisateur %d est à la figure %d \n", users[i].id, users[i].figure_id);
             return users[i];
         }
     }
@@ -40,6 +57,7 @@ void remove_user(User user)
         {
             users[i].id = -1;
             users[i].socket.fd = -1;
+            users[i].figure_id = -1;
             printf("[remove_user] %d removed\n", id);
         }
     }
@@ -50,12 +68,12 @@ void remove_user(User user)
 void display_users()
 {
     printf("*******************************************\n");
-    printf("[display_users] ID | Socket\n");
+    printf("[display_users] ID | Socket | Figure\n");
     for (int i = 0; i < 10; i++)
     {
         if (users[i].id != -1)
         {
-            printf(" %d | %d\n", users[i].id , users[i].socket.fd );
+            printf(" %d | %d | %d\n", users[i].id , users[i].socket.fd, users[i].figure_id );
         }
     }
     printf("*******************************************\n"); 
