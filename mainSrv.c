@@ -19,7 +19,7 @@ void serveur();
 void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial);
 void *server_thread(void * arg);
 void *timer_thread(void * arg);
-void messHandler(buffer_t buff, socket_t sock);
+int messHandler(buffer_t buff, socket_t sock);
 
 
 
@@ -143,7 +143,10 @@ void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
 
 
         // Traiter
-        messHandler(buff, *sockEch);
+        if(messHandler(buff, *sockEch))
+        {
+            return;
+        }
 
 
         
@@ -165,7 +168,7 @@ void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
 }
 
 
-void messHandler(buffer_t buff, socket_t sock)
+int messHandler(buffer_t buff, socket_t sock)
 {
     User user = get_user_by_socket(sock);
     // On récupère le premier caractère du buffer
@@ -189,9 +192,15 @@ void messHandler(buffer_t buff, socket_t sock)
                 if(users[i].id != -1)
                 {
                     envoyer(&users[i].socket, "exit\n", NULL);
+                    remove_user(users[i]);
+                    // On ferme la connexion
+                    fermerSocket(&users[i].socket);
+                    return 1;
+
                 }
             }
 
         break;
     }
+    return 0;
 }

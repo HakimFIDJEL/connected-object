@@ -1,5 +1,9 @@
 #include "./heads/data.h"
 #include "./heads/session.h"
+#include "./heads/game.h"
+#include "./heads/leds.h"
+#include "./heads/buttons.h"
+#include "./heads/buzzers.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +17,17 @@
 #define PORT 5000
 #define MODE SOCK_STREAM
 #define MAXSIZE 1024
+#define MAX_FIGURE 2
+
+
+
+
+
+int figure[4][4];
+int tempFigure[4][4];
+
+int figureUpScale[8][8];
+int tempFigureUpScale[8][8];
 
 bool gameStarted = false;
 bool gameEnded = false;
@@ -51,12 +66,22 @@ socket_t sockEcoute;
 
 void client()
 {
+
+    printf("[Client] Initialisation du client\n");
+
+    setupLeds();
+    setupButtons();
+    setupBuzzer();
+
+
     socket_t sockConn;
     buffer_t buff;
 
     // On affiche la socket
     sockConn = connecterClt2Srv(ADDR, PORT);
     printf("[Client] Socket dialogue créée : %d\n", sockConn.fd);
+
+    ledWait();
 
 
     while(1)
@@ -65,12 +90,20 @@ void client()
         recevoir(&sockConn, buff, NULL);
         if(strcmp(buff, "start\n") == 0)
         {
-            printf("[Client] Lancement de la partie\n");
+            printf("[Client] Lancement de la partie dans 3 secondes\n");
+            for(int i = 3; i > 0; i--)
+            {
+                ledCountDown(i);
+                bcm2835_delay(1000);
+            }
             break;
         }
 
     }
 
+    emptyMatrice();
+
+    
 
     // On fait deux threads pour gérer l'envoi et la réception
     pthread_t threadEnvoi, threadReception;
@@ -98,26 +131,114 @@ void *EnvoiClt(void *arg)
     socket_t sockConn = *(socket_t *) arg;
     buffer_t buff;
 
-    while(!gameEnded)
+  
+    
+
+    Position button = {-1, -1};
+    int nbrFigure = 0;
+
+   
+
+    while(nbrFigure < MAX_FIGURE && !gameEnded)
     {
-        // On attend un message
-        printf("Entrez un message : ");
-        fgets(buff, MAXSIZE, stdin);
+        // On vide les tableux de figures
+        emptyFigure(tempFigure);
+        emptyFigure(figure);
 
-        // On envoie le message
-        envoyer(&sockConn, buff, NULL);
-        if(strcmp(buff, "exit\n") == 0)
+        // On génère une figure aléatoire
+        fillFigure();
+
+        // On l'agrandit et on l'affiche sur la matrice de led 8x8
+        upscaleFigure(figure, figureUpScale);
+        displayFigure(figureUpScale);
+
+        // On met un temps de 3s puis c'est au joueur de reproduire la figure
+        printf("A vous de jouer\n");
+        bcm2835_delay(3000); 
+        emptyMatrice();
+
+        // Tant que la figure n'est pas correcte, on laisse le joueur jouer
+        while(!checkIfFigureIsCorrect())
         {
-            gameEnded = true;
+            button = readButtons();
 
+            // Si le joueur presse un bouton
+            if (button.row != -1 && button.col != -1) 
+            {
+                // Si la case est correcte on l'ajoute à la figure temporaire
+                if(checkIfCaseIsCorrect(button.row, button.col))
+                {
+                    // Si la case a pas déjà été ajoutée
+                    if(tempFigure[button.row][button.col] == 1)
+                    {
+                        printf("Case déjà ajoutée\n");
+                        continue;
+                    }
+                    else 
+                    {
+                        printf("Case ajoutée\n");
+
+                        emptyMatrice();
+
+                        bcm2835_delay(100); 
+                        // On affiche la figure temporaire
+                        addCaseToFigure(button.row, button.col);
+                        upscaleFigure(tempFigure, tempFigureUpScale);
+                        displayFigure(tempFigureUpScale);
+                    }
+                }
+                else 
+                {
+                    printf("Mauvaise case\n");
+                    buzzerError();
+                    ledError();
+                    emptyFigure(tempFigure);
+                    emptyMatrice();
+
+                    bcm2835_delay(100); 
+
+                    displayFigure(figureUpScale);
+                    bcm2835_delay(3000); 
+                    emptyMatrice();
+
+                    if(gameEnded)
+                    {
+                        break;
+                    }
+                }
+            } else {
+                bcm2835_delay(100); 
+            }
+        }
+        if(gameEnded)
+        {
             break;
         }
-
-        // On vide le buffer
-        buff[0] = '\0';
+        // On envoi dans le buffer "0" pour signifier la fin d'une figure
+        envoyer(&sockConn, "0", NULL);
+        buzzerSuccess();
+        ledSuccess();
+        nbrFigure++;
     }
 
-    printf("[Client] Fin de l'envoi\n");
+    if(gameEnded)
+    {
+        printf("Vous avez perdu\n");
+        buzzerError();
+        ledError();
+    }
+    else 
+    {
+        // On envoi dans le buffer "1" pour signifier la fin de la partie
+        envoyer(&sockConn, "1", NULL);
+        printf("Bravo vous avez réussi\n");
+        buzzerSuccess();
+        ledSuccess();
+    }
+
+    emptyMatrice();
+    closeLeds();
+    
 
     return NULL;
 }
