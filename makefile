@@ -34,7 +34,10 @@ client: archives
 	$(CC) -std=c99 -L$(WPI)/lib -I$(WPI)/include -I$(BCM2835_INCLUDE) mainClt.c -o mainClt -L./archives -L$(BCM2835_LIB) -lUNIXPi -lpthread -lwiringPi -lbcm2835
 
 copy:
-	sshpass -p "password" scp -r mainClt pi@192.168.1.169:~/Documents/ObjectCo 
+	sshpass -p "password" scp -r mainClt pi@192.168.238.207:~/Documents/ObjectCo 
+	sshpass -p "password" scp -r mainClt pi@192.168.238.112:~/Documents/ObjectCo 
+	# scp -r mainClt pi@192.168.238.207:~/Documents/ObjectCo
+	# scp -r mainClt pi@192.168.238.112:~/Documents/ObjectCo
 
 clean:
 	rm -f mainSrv mainClt mainCltPi ./libs/* ./archives/*

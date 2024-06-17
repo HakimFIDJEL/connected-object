@@ -12,8 +12,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#define ADDR "192.168.1.92"
-// #define ADDR "192.168.238.73"
+// #define ADDR "192.168.1.92"
+#define ADDR "192.168.238.246"
 #define PORT 5000
 #define MODE SOCK_STREAM
 #define MAXSIZE 1024
@@ -215,10 +215,23 @@ void *EnvoiClt(void *arg)
             break;
         }
         // On envoi dans le buffer "0" pour signifier la fin d'une figure
-        envoyer(&sockConn, "0", NULL);
+
+        nbrFigure++;
+        /*
+        if(nbrFigure == MAX_FIGURE )
+        {
+            envoyer(&sockConn, "1", NULL);
+            // gameEnded = true;
+        }
+        else 
+        {
+            envoyer(&sockConn, "0", NULL);
+        }
+        */
+        
+
         buzzerSuccess();
         ledSuccess();
-        nbrFigure++;
     }
 
     if(gameEnded)
@@ -230,6 +243,7 @@ void *EnvoiClt(void *arg)
     else 
     {
         // On envoi dans le buffer "1" pour signifier la fin de la partie
+        gameEnded = true;
         envoyer(&sockConn, "1", NULL);
         printf("Bravo vous avez réussi\n");
         buzzerSuccess();
@@ -253,12 +267,25 @@ void *ReceptionClt(void *arg)
         // On reçoit un message
         recevoir(&sockConn, buff, NULL);
         printf("[Client] Message reçu : %s\n", buff);
+        // printf("Game ended : %d\n", gameEnded);
         if(strcmp(buff, "exit\n") == 0)
         {
             gameEnded = true;
+            printf("Vous avez perdue\n");
+            buzzerError();
+            ledError();
+            emptyMatrice();
+            closeLeds();
+            // On ferme la socket de dialogue
+            printf("[Client] Fermeture de la socket dialogue\n");
+            fermerSocket(&sockConn);
+            // On tue le programme
+            exit(0);
 
             break;
         }
+
+
 
         // On vide le buffer
         buff[0] = '\0';

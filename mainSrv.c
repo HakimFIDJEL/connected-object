@@ -2,6 +2,7 @@
 #include "./heads/session.h"
 #include "./heads/users.h"
 #include <pthread.h>
+// #include <time.h>
 
 #define ADDR "0.0.0.0"
 // #define ADDR "192.168.238.73"
@@ -130,11 +131,14 @@ void *server_thread(void * arg)
 void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
 {
     User *users = get_users(); 
+    
+
 
     while(!gameStarted)
     {
         sleep(1);
     }
+
 
     while(1)
     {
@@ -143,7 +147,7 @@ void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
 
 
         // Traiter
-        if(messHandler(buff, *sockEch))
+        if(messHandler(buff, *sockEch) == 1)
         {
             return;
         }
@@ -171,6 +175,7 @@ void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial)
 int messHandler(buffer_t buff, socket_t sock)
 {
     User user = get_user_by_socket(sock);
+    User *users = get_users();
     // On récupère le premier caractère du buffer
     char c = buff[0];
 
@@ -185,16 +190,18 @@ int messHandler(buffer_t buff, socket_t sock)
         case '1':
             printf("L'utilisateur %d a terminé la partie\n", user.id);
 
-            User *users = get_users();
+            display_users();
+
+            
             // Déconnecte tous les utilisateurs
             for(int i = 0; i < 10; i++)
             {
                 if(users[i].id != -1)
                 {
+                    printf("Envoi de la déconnexion à l'utilisateur %d\n", users[i].id);
                     envoyer(&users[i].socket, "exit\n", NULL);
                     remove_user(users[i]);
                     // On ferme la connexion
-                    fermerSocket(&users[i].socket);
                     return 1;
 
                 }
