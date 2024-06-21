@@ -15,7 +15,6 @@ bool gameStarted = false;
 bool gameEnded = false;
 
 
-
 void serveur();
 void dialogueSrv(socket_t *sockEch, buffer_t buff, pFct serial);
 void *server_thread(void * arg);
@@ -196,16 +195,16 @@ int messHandler(buffer_t buff, socket_t sock)
             // Déconnecte tous les utilisateurs
             for(int i = 0; i < 10; i++)
             {
-                if(users[i].id != -1)
+                if(users[i].id != -1 && users[i].id != user.id)
                 {
                     printf("Envoi de la déconnexion à l'utilisateur %d\n", users[i].id);
+                    // On ferme la connexion
                     envoyer(&users[i].socket, "exit\n", NULL);
                     remove_user(users[i]);
-                    // On ferme la connexion
-                    return 1;
 
                 }
             }
+            return 1;
 
         break;
     }

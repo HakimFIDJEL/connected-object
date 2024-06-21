@@ -17,7 +17,7 @@
 #define PORT 5000
 #define MODE SOCK_STREAM
 #define MAXSIZE 1024
-#define MAX_FIGURE 2
+#define MAX_FIGURE 5
 
 
 
@@ -31,7 +31,6 @@ int tempFigureUpScale[8][8];
 
 bool gameStarted = false;
 bool gameEnded = false;
-
 
 
 void client();
@@ -137,10 +136,9 @@ void *EnvoiClt(void *arg)
     Position button = {-1, -1};
     int nbrFigure = 0;
 
-   
-
     while(nbrFigure < MAX_FIGURE && !gameEnded)
     {
+       
         // On vide les tableux de figures
         emptyFigure(tempFigure);
         emptyFigure(figure);
@@ -190,7 +188,7 @@ void *EnvoiClt(void *arg)
                 else 
                 {
                     printf("Mauvaise case\n");
-                    buzzerError();
+                    // buzzerError();
                     ledError();
                     emptyFigure(tempFigure);
                     emptyMatrice();
@@ -209,6 +207,8 @@ void *EnvoiClt(void *arg)
             } else {
                 bcm2835_delay(100); 
             }
+
+
         }
         if(gameEnded)
         {
@@ -228,16 +228,21 @@ void *EnvoiClt(void *arg)
             envoyer(&sockConn, "0", NULL);
         }
         */
+
+        if(nbrFigure != MAX_FIGURE)
+        {
+            envoyer(&sockConn, "0", NULL);
+        }
         
 
-        buzzerSuccess();
+        // buzzerSuccess();
         ledSuccess();
     }
 
     if(gameEnded)
     {
         printf("Vous avez perdu\n");
-        buzzerError();
+        // buzzerError();
         ledError();
     }
     else 
@@ -246,7 +251,7 @@ void *EnvoiClt(void *arg)
         gameEnded = true;
         envoyer(&sockConn, "1", NULL);
         printf("Bravo vous avez réussi\n");
-        buzzerSuccess();
+        // buzzerSuccess();
         ledSuccess();
     }
 
@@ -272,7 +277,7 @@ void *ReceptionClt(void *arg)
         {
             gameEnded = true;
             printf("Vous avez perdue\n");
-            buzzerError();
+            // buzzerError();
             ledError();
             emptyMatrice();
             closeLeds();
